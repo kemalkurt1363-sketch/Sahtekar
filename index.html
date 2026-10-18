@@ -41,7 +41,7 @@ button:disabled{opacity:.4}
 <script>
 const CFG={apiKey:"AIzaSyAR4FXIpm5OvX4IS847-gu-NLa5lI5xRkI",authDomain:"sahtekar-bf8e4.firebaseapp.com",projectId:"sahtekar-bf8e4",storageBucket:"sahtekar-bf8e4.firebasestorage.app",messagingSenderId:"516038337466",appId:"1:516038337466:web:1935dfe5bddb2541657383"};
 const WORDS={
-"Ünlüler":["Tarkan", "Cem Yılmaz", "Sezen Aksu", "Barış Manço", "Ajda Pekkan", "Kemal Sunal", "Müslüm Gürses", "Ahmet Kaya", "Haluk Levent", "Tarık Akan", "Orhan Gencebay", "Şahan Gökbakar", "İsmail Kartal", "Okan Buruk", "İbrahim Tatlıses", "Acun Ilıcalı", "Ali Koç", "Semicenk", "Ebru Gündeş", "Sadettin Saran", "Murat Boz", "Hadise", "Halit Ergenç", "Meryem Uzerli", "Seda Sayan", "Sibelcan", "Mabel Matiz", "Arda Turan", "Fatih Terim", "Mauro Icardi", "Aras Bulut İynemli", "Cristiano Ronaldo", "Lionel Messi", "Arda Güler", "Oktay Kaynarca", "Rihanna", "Çağatay Ulusoy", "Hülya Avşar", "Canan Karatay", "Şener Şen", "Alişan", "Recep Tayyip Erdoğan", "Kemal Kılıçdaroğlu", "Bülent Erdoğan", "Donald Trump", "Müge Anlı", "Beyazıt Özgür", "Yılmaz Erdoğan", "Mahmut Tuncer", "Shakira", "Lvbel C5", "Kıvanç Tatlıtuğ", "Johnny Depp", "Tom Cruise", "Brad Pitt", "Leonardo DiCaprio", "Al Pacino", "Angelina Jolie", "Zendaya"],
+"Ünlüler":["Tarkan", "Cem Yılmaz", "Sezen Aksu", "Barış Manço", "Ajda Pekkan", "Kemal Sunal", "Müslüm Gürses", "Ahmet Kaya", "Haluk Levent", "Tarık Akan", "Orhan Gencebay", "Şahan Gökbakar", "İsmail Kartal", "Okan Buruk", "İbrahim Tatlıses", "Acun Ilıcalı", "Ali Koç", "Semicenk", "Ebru Gündeş", "Sadettin Saran", "Murat Boz", "Hadise", "Halit Ergenç", "Meryem Uzerli", "Seda Sayan", "Sibelcan", "Mabel Matiz", "Arda Turan", "Fatih Terim", "Mauro Icardi", "Aras Bulut İynemli", "Cristiano Ronaldo", "Lionel Messi", "Arda Güler", "Oktay Kaynarca", "Rihanna", "Çağatay Ulusoy", "Hülya Avşar", "Canan Karatay", "Şener Şen", "Alişan", "Recep Tayyip Erdoğan", "Kemal Kılıçdaroğlu", "Bülent Erdoğan", "Donald Trump", "Müge Anlı", "Beyazıt Özgür", "Yılmaz Erdoğan", "Mahmut Tuncer", "Shakira", "Lvbel C5", "Kıvanç Tatlıtuğ", "Johnny Depp", "Tom Cruise", "Brad Pitt", "Leonardo DiCaprio", "Al Pacino", "Angelina Jolie", "Zendaya","Ruhi Çenet","Enes Batur","Orkun Işıtmak"],
 "Diziler":["Kurtlar Vadisi", "Çukur", "Ezel", "Aşk-ı Memnu", "Muhteşem Yüzyıl", "Behzat Ç.|Behzat C", "Leyla ile Mecnun", "Kuzey Güney", "Yalan Dünya", "Breaking Bad", "Game of Thrones|Taht Oyunları", "Prison Break|Hapisten Kaçış", "Friends|Arkadaşlar", "Squid Game|Kalamar Oyunu", "Peaky Blinders", "La Casa de Papel|Money Heist", "Lost|Kayıp", "The Office|Office", "Dark", "Narcos"],
 "Şehirler":["İstanbul", "Trabzon", "Mardin", "Eskişehir", "Gaziantep", "Rize", "İzmir", "Bursa", "Van", "Antalya", "Ankara", "Konya", "Şanlıurfa", "Hatay", "Adana", "Sivas", "Muğla", "Kahramanmaraş", "Niğde", "Malatya", "Nevşehir", "Paris", "Roma", "New York", "Dubai", "Tokyo", "Barcelona", "Madrid"],
 "Ülkeler":["Japonya", "Brezilya", "Mısır", "İtalya", "Almanya", "Hindistan", "Yunanistan", "Meksika", "Rusya", "İsviçre", "Güney Kore", "Azerbaycan", "Türkiye", "Amerika", "İngiltere", "Fransa", "İspanya", "Portekiz", "Hollanda", "Arjantin", "Kanada", "Avustralya", "Çin", "Suudi Arabistan", "Irak", "İran", "Ukrayna", "Norveç", "Güney Afrika", "Bulgaristan", "Gürcistan", "Kıbrıs"],
@@ -49,10 +49,14 @@ const WORDS={
 "Nesneler":["Çay bardağı", "Şemsiye", "Cüzdan", "Powerbank", "Kulaklık", "Terlik", "Ütü", "Çakmak", "Priz", "Tespih", "Halı", "Telefon", "Anahtar", "Saat", "Gözlük", "Ayna", "Çanta", "Bavul", "Fırça", "Havlu", "Yastık", "Battaniye", "Kumanda", "Televizyon", "Buzdolabı", "Çamaşır makinesi", "Süpürge", "Tencere", "Çaydanlık", "Mum", "Bisiklet", "Top", "Saç kurutma makinesi", "Diş fırçası"],
 "Filmler":["Recep İvedik|Recep Ivedik", "Hababam Sınıfı", "Eşkıya", "Titanik|Titanic", "Yüzüklerin Efendisi|Lord of the Rings", "Harry Potter", "Baba (Godfather)|Baba|Godfather", "Hızlı ve Öfkeli|Fast and Furious|Fast & Furious", "Vizontele", "G.O.R.A.|GORA", "Avatar", "Esaretin Bedeli|Shawshank Redemption", "Inception|Başlangıç", "Gladyatör|Gladiator", "Matrix", "Aslan Kral|Lion King", "Karayip Korsanları|Pirates of the Caribbean", "Shrek", "Örümcek Adam|Spider-Man|Spiderman", "Terminatör|Terminator", "Evde Tek Başına|Home Alone", "Interstellar|Yıldızlararası", "Fight Club|Dövüş Kulübü", "Avengers|Yenilmezler", "Batman", "Süperman|Superman", "Seven|Se7en", "Taxi Driver|Taksi Şoförü", "Prestij|Prestige", "Arabalar|Cars", "Yeşil Yol|Green Mile", "Sherlock Holmes", "Organize İşler", "Babam ve Oğlum", "7. Koğuştaki Mucize|7 Koğuştaki Mucize|Miracle in Cell No. 7", "Selvi Boylum Al Yazmalım"],
 "Meslekler":["Doktor", "Hemşire", "Diş hekimi", "Eczacı", "Veteriner", "Avukat", "Hakim", "Öğretmen", "Mühendis", "Mimar", "Muhasebeci", "Bankacı", "Yazılımcı", "Gazeteci", "Berber", "Terzi", "Marangoz", "Elektrikçi", "Tesisatçı", "Boyacı", "Tamirci", "Kuyumcu", "Kasap", "Manav", "Bakkal", "Simitçi", "Çaycı", "Kurye", "Garson", "Aşçı", "Pilot", "Şoför", "Kaptan", "Astronot", "Polis", "İtfaiyeci", "Asker", "Güvenlik görevlisi", "Ressam", "Fotoğrafçı", "Şarkıcı", "Futbolcu"],
+"Spor":["Futbol", "Basketbol", "Voleybol", "Tenis", "Yüzme", "Güreş", "Boks", "Okçuluk", "UFC", "Galatasaray", "Fenerbahçe", "Beşiktaş", "Trabzonspor", "Real Madrid", "Barcelona", "Dünya Kupası|World Cup", "Olimpiyatlar|Olimpiyat", "Şampiyonlar Ligi|Champions League", "Penaltı", "Ofsayt", "Smaç", "Korner"],
+"Markalar":["Apple", "Samsung", "Google", "Netflix", "PlayStation|Play Station", "ChatGPT|Chat GPT", "Ülker", "Eti", "Migros", "BİM", "A101", "Trendyol", "Getir", "Audi", "Mavi", "Zara", "Boyner", "Nike", "Adidas", "LC Waikiki|LCW", "Togg", "BMW", "Mercedes|Mercedes-Benz", "Tesla", "Turkcell", "Ziraat Bankası|Ziraat", "Köfteci Yusuf|Yusuf"],
 "Hayvanlar":["Kedi", "Deve", "Penguen", "Kaplumbağa", "Horoz", "Zürafa", "Sinek", "Balina", "Tavuk", "Karga", "Ahtapot", "Papağan", "Maymun", "Çakal", "Keklik", "Bülbül", "Kurt", "Köpekbalığı", "Çekirge", "Baykuş", "Kartal", "Timsah", "Karınca", "Hamam böceği", "Solucan", "Hamsi", "Aslan", "Çita", "Kaplan", "Köpek", "At", "Sincap", "Kanguru", "Ördek", "Uğurböceği", "Tavşan", "Fil", "Ayı", "Mamut", "Panda", "İnek", "Koyun", "Keçi", "Goril", "Yengeç", "Yarasa", "Kangal", "Kelebek", "Leylek", "Domuz"]};
 const CATS=Object.keys(WORDS);
+const CT=[[15,"15 sn"],[20,"20 sn"],[30,"30 sn"],[0,"Sayaç kapalı"]],VT=[[30,"30 sn"],[60,"60 sn"],[0,"Sayaç kapalı"]];
+const opts=(l,c)=>l.map(([v,t])=>`<option value="${v}" ${String(v)===String(c)?"selected":""}>${t}</option>`).join("");
 const $=s=>document.querySelector(s);
-let db=null,me={id:"",name:""},code="",room=null,myCard=null,players=[],clues=[],votes=[],unsubs=[],err="",ui={name:"",join:"",clue:"",guess:"",cat:"Karışık"},finG="",finGu=0,HS=null;
+let db=null,me={id:"",name:""},code="",room=null,myCard=null,players=[],clues=[],votes=[],unsubs=[],err="",ui={name:"",join:"",clue:"",guess:"",cat:"Karışık",ct:20,vt:60},finG="",finGu=0,HS=null,cd={key:"",end:0,done:false};
 try{ui.name=localStorage.getItem("sk_name")||""}catch(e){}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const rnd=a=>a[Math.floor(Math.random()*a.length)];
@@ -100,15 +104,25 @@ async function start(){
     players.forEach(p=>b.set(R().collection("cards").doc(p.id),{g,t:p.id===imp?"imp":"word",w:p.id===imp?"":word}));
     b.set(R().collection("secret").doc("word"),{g,w:word,alt:entry,imp});
     await b.commit();
-    await R().update({phase:"clue",g,cat,order,turn:0,lim:order.length*2,vr:0,result:null,guess:null,word:null,imp:null});
+    await R().update({phase:"clue",g,cat,order,turn:0,lim:order.length*2,vr:0,ct:Number(ui.ct),vt:Number(ui.vt),result:null,guess:null,word:null,imp:null});
   }catch(e){err="Başlatılamadı: "+(e.message||e.code);render()}
 }
+async function advanceClue(turn,text){
+  const ref=R();
+  await db.runTransaction(async t=>{
+    const sn=await t.get(ref),d=sn.data();
+    if(!d||d.phase!=="clue"||d.turn!==turn)return;
+    const uid=d.order[turn%d.order.length];
+    t.set(ref.collection("clues").doc(d.g+"_"+turn),{g:d.g,turn,uid,text});
+    const next=turn+1;
+    t.update(ref,next>=(d.lim||d.order.length*2)?{phase:"vote",turn:next}:{turn:next});
+  });
+}
 async function sendClue(){
-  const t=(ui.clue||"").trim();if(!t||room.phase!=="clue")return;
+  const t=(ui.clue||"").trim();
+  if(!t||room.phase!=="clue"||room.order[room.turn%room.order.length]!==me.id)return;
   const turn=room.turn;ui.clue="";
-  await R().collection("clues").doc(room.g+"_"+turn).set({g:room.g,turn,uid:me.id,text:t});
-  const next=turn+1;
-  await R().update(next>=(room.lim||room.order.length*2)?{phase:"vote",turn:next}:{turn:next});
+  try{await advanceClue(turn,t)}catch(e){err="Gönderilemedi: "+(e.message||e.code);render()}
 }
 async function castVote(id){const vr=room.vr||0;await R().collection("votes").doc(room.g+"_"+vr+"_"+me.id).set({g:room.g,vr,uid:me.id,target:id})}
 async function sendGuess(){const t=(ui.guess||"").trim();if(!t)return;ui.guess="";await R().update({guess:t})}
@@ -121,10 +135,10 @@ function hostWatch(){
   if(room.phase==="vote")checkVotes();
   else if(room.phase==="guess"&&room.guess!=null)checkGuess();
 }
-async function checkVotes(){
+async function checkVotes(force){
   const vr=room.vr||0,key=room.g+"_"+vr;
   const v=votes.filter(x=>x.g===room.g&&(x.vr||0)===vr);
-  if(v.length<players.length||players.length<1||finG===key)return;
+  if((!force&&v.length<players.length)||players.length<1||finG===key)return;
   finG=key;
   const tally={};v.forEach(x=>tally[x.target]=(tally[x.target]||0)+1);
   const top=Object.keys(tally).sort((a,b)=>tally[b]-tally[a]);
@@ -182,27 +196,27 @@ function render(){
     const host=room.host===me.id,g=room.g,hasSc=room.scores&&Object.keys(room.scores).length;
     h=`<div class="mu">Oda kodu</div><div class="code">${esc(code)}</div>`;
     if(room.phase==="lobby"){
-      h+=`<div class="card"><h2>Oyuncular (${players.length})</h2>${players.slice().sort((a,b)=>pts(b.id)-pts(a.id)).map(p=>`<div class="pl"><span class="${p.id===me.id?"me":""}">${esc(p.name)}${p.id===room.host?' <span class="mu">(kurucu)</span>':""}</span>${hasSc?`<b>${pts(p.id)} puan</b>`:""}</div>`).join("")}<div class="mu" style="margin-top:8px">Sahtekâr yakalanmazsa 2 puan alır. Yakalanıp kelimeyi bilirse 1 puan. Kelimeyi bilemezse herkes 1 puan alır.</div></div>`;
-      h+=host?`<div class="card"><select data-m="cat">${["Karışık",...CATS].map(c=>`<option ${c===ui.cat?"selected":""}>${c}</option>`).join("")}</select><button data-on="start" ${players.length<3?"disabled":""}>Oyunu başlat</button>${players.length<3?'<div class="mu">En az 3 kişi gerekli.</div>':""}${hasSc?'<button class="s" data-on="resetScores">Puanları sıfırla</button>':""}</div>`:`<p class="mu" style="text-align:center">Kurucunun başlatması bekleniyor…</p>`;
+      h+=`<div class="card"><h2>Oyuncular (${players.length})</h2>${players.slice().sort((a,b)=>pts(b.id)-pts(a.id)).map(p=>`<div class="pl"><span class="${p.id===me.id?"me":""}">${esc(p.name)}${p.id===room.host?' <span class="mu">(kurucu)</span>':""}</span>${hasSc?`<b>${pts(p.id)} puan</b>`:""}</div>`).join("")}<div class="mu" style="margin-top:8px">Sahtekâr yakalanmazsa 2 puan alır. Yakalanıp kelimeyi bilirse 1 puan. Kelimeyi bilemezse herkes 1 puan alır. Süre dolarsa ipucu boş geçilir.</div></div>`;
+      h+=host?`<div class="card"><select data-m="cat">${["Karışık",...CATS].map(c=>`<option ${c===ui.cat?"selected":""}>${c}</option>`).join("")}</select><div class="mu" style="margin-top:8px">İpucu süresi</div><select data-m="ct">${opts(CT,ui.ct)}</select><div class="mu">Oylama süresi</div><select data-m="vt">${opts(VT,ui.vt)}</select><button data-on="start" ${players.length<3?"disabled":""}>Oyunu başlat</button>${players.length<3?'<div class="mu">En az 3 kişi gerekli.</div>':""}${hasSc?'<button class="s" data-on="resetScores">Puanları sıfırla</button>':""}</div>`:`<p class="mu" style="text-align:center">Kurucunun başlatması bekleniyor…</p>`;
     }else{
       h+=`<div class="card"><div class="mu" style="margin-bottom:8px">Kategori: <b>${esc(room.cat)}</b></div><div class="secret" id="sec">Görmek için basılı tut</div></div>`;
       const cl=clues.filter(c=>c.g===g).sort((a,b)=>a.turn-b.turn);
       if(room.phase==="clue"){
         const cur=room.order[room.turn%room.order.length],mine=cur===me.id;
-        h+=`<div class="card"><h2>${Math.floor(room.turn/room.order.length)+1}. tur</h2>${room.vr>0?'<p class="me">Oylar eşit çıktı! Bir tur daha ipucu, sonra yeni oylama.</p>':""}`+cl.map(c=>`<div class="pl"><span>${esc(nameOf(c.uid))}</span><b>${esc(c.text)}</b></div>`).join("")+
+        h+=`<div class="card"><h2>${Math.floor(room.turn/room.order.length)+1}. tur<span id="cd" style="float:right;font-size:18px"></span></h2>${room.vr>0?'<p class="me">Oylar eşit çıktı! Bir tur daha ipucu, sonra yeni oylama.</p>':""}`+cl.map(c=>`<div class="pl"><span>${esc(nameOf(c.uid))}</span><b>${esc(c.text)}</b></div>`).join("")+
         `<p class="${mine?"me":"mu"}">${mine?"Sıra sende! Tek kelime ipucu yaz:":esc(nameOf(cur))+" yazıyor…"}</p>`+
         (mine?`<input id="ci" data-m="clue" placeholder="İpucu" maxlength="20" value="${esc(ui.clue||"")}"><button data-on="sendClue">Gönder</button>`:"")+`</div>`;
       }else{
         h+=`<div class="card"><h2>İpuçları</h2>`+cl.map(c=>`<div class="pl"><span>${esc(nameOf(c.uid))}</span><b>${esc(c.text)}</b></div>`).join("")+`</div>`;
         if(room.phase==="vote"){
           const vr=room.vr||0,my=votes.find(v=>v.g===g&&(v.vr||0)===vr&&v.uid===me.id);
-          h+=`<div class="card"><h2>Sahtekâr kim?</h2>`+players.filter(p=>p.id!==me.id).map(p=>`<button class="vote ${my&&my.target===p.id?"on":""}" data-on="castVote" data-a="${p.id}">${esc(p.name)}</button>`).join("")+`<div class="mu">${votes.filter(v=>v.g===g&&(v.vr||0)===vr).length}/${players.length} oy verdi</div></div>`;
+          h+=`<div class="card"><h2>Sahtekâr kim?<span id="cd" style="float:right;font-size:18px"></span></h2>`+players.filter(p=>p.id!==me.id).map(p=>`<button class="vote ${my&&my.target===p.id?"on":""}" data-on="castVote" data-a="${p.id}">${esc(p.name)}</button>`).join("")+`<div class="mu">${votes.filter(v=>v.g===g&&(v.vr||0)===vr).length}/${players.length} oy verdi</div></div>`;
         }else if(room.phase==="guess"){
           const imps=myCard&&myCard.g===g&&myCard.t==="imp",acc=nameOf((room.result||{}).accused);
           h+=`<div class="card"><h2>Sahtekâr yakalandı! 🕵️</h2>`+(imps?`<p class="me">Yakalandın, ama kelimeyi doğru bilirsen 1 puan kazanırsın. Kelime ne?</p><input id="gi" data-m="guess" placeholder="Tahminin" maxlength="30" value="${esc(ui.guess||"")}"><button data-on="sendGuess">Tahmin et</button>`:`<p class="mu">${esc(acc)} sahtekâr çıktı. Şimdi kelimeyi tahmin etmeye çalışıyor…</p>`)+`</div>`;
         }else{
           const r=room.result||{},caught=!!r.accused&&r.accused===room.imp,crewWon=caught&&!r.guessOk;
-          h+=`<div class="card"><div class="big">${r.accused?esc(nameOf(r.accused))+" suçlandı":"Oylar eşit!"}</div><p class="big" style="color:${crewWon?"var(--ok)":"var(--ac)"}">${crewWon?"Sahtekâr yakalandı 🎉":caught?"Yakalandı ama kelimeyi bildi 😮":"Sahtekâr kaçtı 😈"}</p>
+          h+=`<div class="card"><div class="big">${r.accused?esc(nameOf(r.accused))+" suçlandı":(Object.keys(r.tally||{}).length?"Oylar eşit!":"Süre doldu, kimse oy vermedi")}</div><p class="big" style="color:${crewWon?"var(--ok)":"var(--ac)"}">${crewWon?"Sahtekâr yakalandı 🎉":caught?"Yakalandı ama kelimeyi bildi 😮":"Sahtekâr kaçtı 😈"}</p>
           <div class="pl"><span>Sahtekâr</span><b>${esc(nameOf(room.imp))}</b></div><div class="pl"><span>Kelime</span><b>${esc(room.word||"?")}</b></div>${caught?`<div class="pl"><span>Sahtekârın tahmini</span><b>${esc(r.guess||"-")}</b></div>`:""}
           ${Object.keys(r.tally||{}).map(k=>`<div class="pl"><span class="mu">${esc(nameOf(k))}</span><span class="mu">${r.tally[k]} oy</span></div>`).join("")}</div>`+lbCard()+(host?`<button data-on="again">Yeni tur</button>`:`<p class="mu" style="text-align:center">Kurucu yeni turu başlatacak.</p>`);
         }
@@ -210,8 +224,30 @@ function render(){
     }
     if(err)h+=`<p style="color:var(--ac)">${esc(err)}</p>`;
   }
-  a.innerHTML=h;bind();
+  a.innerHTML=h;bind();tick();
   if(keep){const el=document.querySelector(`[data-m="${keep}"]`);if(el&&el.tagName==="INPUT"){el.focus();const l=el.value.length;try{el.setSelectionRange(l,l)}catch(e){}}}
 }
+function syncCd(){
+  let lim=0,key="";
+  if(room&&room.phase==="clue"){lim=room.ct||0;key=room.g+"|c|"+room.turn+"|"+(room.vr||0)}
+  else if(room&&room.phase==="vote"){lim=room.vt||0;key=room.g+"|v|"+(room.vr||0)}
+  if(key!==cd.key){cd={key,end:lim?Date.now()+lim*1000:0,done:false};ui.clue=""}
+}
+async function expire(){
+  try{
+    if(room.phase==="clue")await advanceClue(room.turn,"—");
+    else if(room.phase==="vote")await checkVotes(true);
+  }catch(e){}
+}
+function tick(){
+  if(!db||!code||!room)return;
+  syncCd();
+  const el=$("#cd");
+  if(!cd.end){if(el)el.textContent="";return}
+  const left=Math.ceil((cd.end-Date.now())/1000);
+  if(el){el.textContent="⏱ "+Math.max(left,0);el.style.color=left<=5?"var(--ac)":"var(--mu)"}
+  if(room.host===me.id&&left<=-1&&!cd.done){cd.done=true;expire()}
+}
+setInterval(tick,250);
 init();
 </script></body></html>
