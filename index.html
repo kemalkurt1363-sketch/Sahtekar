@@ -34,6 +34,9 @@ button:disabled{opacity:.4}
 .vote{background:var(--card);color:var(--tx);border:1px solid var(--ln)}
 .vote.on{background:var(--ac);color:#fff}
 .big{font-size:26px;font-weight:800;text-align:center}
+.chip{display:inline-block;width:auto;padding:8px 14px;margin:4px 4px 0 0;border-radius:20px;font-size:14px}
+.chip.on{background:var(--ac);color:#fff;border:1px solid var(--ac)}
+.chip.off{background:var(--card);color:var(--mu);border:1px solid var(--ln)}
 </style></head><body><div id="app"></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -56,7 +59,7 @@ const CATS=Object.keys(WORDS);
 const CT=[[15,"15 sn"],[20,"20 sn"],[30,"30 sn"],[0,"Sayaç kapalı"]],VT=[[30,"30 sn"],[60,"60 sn"],[0,"Sayaç kapalı"]];
 const opts=(l,c)=>l.map(([v,t])=>`<option value="${v}" ${String(v)===String(c)?"selected":""}>${t}</option>`).join("");
 const $=s=>document.querySelector(s);
-let db=null,me={id:"",name:""},code="",room=null,myCard=null,players=[],clues=[],votes=[],unsubs=[],err="",ui={name:"",join:"",clue:"",guess:"",cat:"Karışık",ct:20,vt:60},finG="",finGu=0,HS=null,cd={key:"",end:0,done:false};
+let db=null,me={id:"",name:""},code="",room=null,myCard=null,players=[],clues=[],votes=[],unsubs=[],err="",ui={name:"",join:"",clue:"",guess:"",cats:CATS.slice(),ct:20,vt:60},finG="",finGu=0,HS=null,cd={key:"",end:0,done:false};
 try{ui.name=localStorage.getItem("sk_name")||""}catch(e){}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const rnd=a=>a[Math.floor(Math.random()*a.length)];
@@ -88,7 +91,7 @@ async function enter(c,create){
   try{localStorage.setItem("sk_name",ui.name)}catch(e){}
   me.name=ui.name.trim();code=c;err="";
   try{
-    if(create){await R().set({phase:"lobby",host:me.id,g:0})}
+    if(create){await R().set({phase:"lobby",host:me.id,g:0,cats:CATS.slice()})}
     else{const s=await R().get();if(!s.exists){err="Böyle bir oda yok.";code="";return render()}}
     await R().collection("players").doc(me.id).set({name:me.name,t:Date.now()});
     sub();
@@ -96,15 +99,39 @@ async function enter(c,create){
 }
 async function create(){let c;for(let i=0;i<5;i++){c=String(Math.floor(1000+Math.random()*9000));try{const x=await db.doc("rooms/"+c).get();if(!x.exists)break}catch(e){break}}enter(c,true)}
 function joinRoom(){enter(ui.join.trim(),false)}
+async function pickWord(){
+  const ref=R().collection("secret").doc("used");
+  const sn=await ref.get();
+  const st=sn.exists?sn.data():{};
+  st.used=st.used||{};st.seen=st.seen||[];
+  const sel=ui.cats.filter(c=>WORDS[c]);
+  const avail=c=>WORDS[c].filter(e=>!(st.used[c]||[]).includes(e.split("|")[0]));
+  let notes=[];
+  let cand=sel.filter(c=>avail(c).length>0&&!st.seen.includes(c));
+  if(!cand.length){st.seen=[];cand=sel.filter(c=>avail(c).length>0)}
+  if(!cand.length){
+    sel.forEach(c=>st.used[c]=[]);st.seen=[];cand=sel.slice();
+    notes.push(sel.length===1?sel[0]+" kategorisindeki kelimeler bitti, baştan başlıyoruz.":"Seçili kategorilerdeki kelimeler bitti, baştan başlıyoruz.");
+  }
+  const cat=rnd(cand),entry=rnd(avail(cat));
+  st.used[cat]=(st.used[cat]||[]).concat(entry.split("|")[0]);
+  st.seen=st.seen.concat(cat);
+  if(avail(cat).length===0&&!notes.length)notes.push(sel.length===1?cat+" kategorisindeki son kelime bu tur çıktı. Sonraki tur baştan başlar.":cat+" kategorisinde kelime kalmadı, sonraki turlarda atlanacak.");
+  await ref.set(st);
+  return {cat,entry,note:notes.join(" ")};
+}
+function toggleCat(c){const i=ui.cats.indexOf(c);if(i>=0)ui.cats.splice(i,1);else ui.cats.push(c);R().update({cats:ui.cats.slice()}).catch(()=>{});render()}
+function allCats(v){ui.cats=v?CATS.slice():[];R().update({cats:ui.cats.slice()}).catch(()=>{});render()}
 async function start(){
   try{
-    const cat=ui.cat==="Karışık"?rnd(CATS):ui.cat,entry=rnd(WORDS[cat]).split("|"),word=entry[0],order=shuffle(players.map(p=>p.id)),imp=rnd(order),g=room.g+1;
+    if(!ui.cats.length){err="En az bir kategori seç.";return render()}
+    const pk=await pickWord(),cat=pk.cat,entry=pk.entry.split("|"),word=entry[0],order=shuffle(players.map(p=>p.id)),imp=rnd(order),g=room.g+1;
     HS={g,w:word,alt:entry,imp};
     const b=db.batch();
     players.forEach(p=>b.set(R().collection("cards").doc(p.id),{g,t:p.id===imp?"imp":"word",w:p.id===imp?"":word}));
     b.set(R().collection("secret").doc("word"),{g,w:word,alt:entry,imp});
     await b.commit();
-    await R().update({phase:"clue",g,cat,order,turn:0,lim:order.length*2,vr:0,ct:Number(ui.ct),vt:Number(ui.vt),result:null,guess:null,word:null,imp:null});
+    await R().update({phase:"clue",g,cat,order,turn:0,lim:order.length*2,vr:0,ct:Number(ui.ct),vt:Number(ui.vt),result:null,guess:null,word:null,imp:null,cats:ui.cats.slice(),note:pk.note||""});
   }catch(e){err="Başlatılamadı: "+(e.message||e.code);render()}
 }
 async function advanceClue(turn,text){
@@ -160,7 +187,7 @@ async function finish(result,guessOk,guess){
   const caught=!!result.accused&&result.accused===hs.imp;
   const sc=Object.assign({},room.scores||{}),gain={};
   players.forEach(p=>{let g=0;
-    if(p.id===hs.imp)g=!caught?2:(guessOk?1:0);else g=(caught&&!guessOk)?1:0;
+    if(p.id===hs.imp)g=!caught?2:(guessOk?1:0);else g=caught?1:0;
     gain[p.id]=g;sc[p.id]=(sc[p.id]||0)+g});
   await R().update({phase:"result",result:{tally:result.tally,accused:result.accused||null,gain,guess:guess||"",guessOk:!!guessOk},word:hs.w,imp:hs.imp,scores:sc});
 }
@@ -196,10 +223,10 @@ function render(){
     const host=room.host===me.id,g=room.g,hasSc=room.scores&&Object.keys(room.scores).length;
     h=`<div class="mu">Oda kodu</div><div class="code">${esc(code)}</div>`;
     if(room.phase==="lobby"){
-      h+=`<div class="card"><h2>Oyuncular (${players.length})</h2>${players.slice().sort((a,b)=>pts(b.id)-pts(a.id)).map(p=>`<div class="pl"><span class="${p.id===me.id?"me":""}">${esc(p.name)}${p.id===room.host?' <span class="mu">(kurucu)</span>':""}</span>${hasSc?`<b>${pts(p.id)} puan</b>`:""}</div>`).join("")}<div class="mu" style="margin-top:8px">Sahtekâr yakalanmazsa 2 puan alır. Yakalanıp kelimeyi bilirse 1 puan. Kelimeyi bilemezse herkes 1 puan alır. Süre dolarsa ipucu boş geçilir.</div></div>`;
-      h+=host?`<div class="card"><select data-m="cat">${["Karışık",...CATS].map(c=>`<option ${c===ui.cat?"selected":""}>${c}</option>`).join("")}</select><div class="mu" style="margin-top:8px">İpucu süresi</div><select data-m="ct">${opts(CT,ui.ct)}</select><div class="mu">Oylama süresi</div><select data-m="vt">${opts(VT,ui.vt)}</select><button data-on="start" ${players.length<3?"disabled":""}>Oyunu başlat</button>${players.length<3?'<div class="mu">En az 3 kişi gerekli.</div>':""}${hasSc?'<button class="s" data-on="resetScores">Puanları sıfırla</button>':""}</div>`:`<p class="mu" style="text-align:center">Kurucunun başlatması bekleniyor…</p>`;
+      h+=`<div class="card"><h2>Oyuncular (${players.length})</h2>${players.slice().sort((a,b)=>pts(b.id)-pts(a.id)).map(p=>`<div class="pl"><span class="${p.id===me.id?"me":""}">${esc(p.name)}${p.id===room.host?' <span class="mu">(kurucu)</span>':""}</span>${hasSc?`<b>${pts(p.id)} puan</b>`:""}</div>`).join("")}<div class="mu" style="margin-top:8px">Sahtekâr yakalanmazsa 2 puan alır. Yakalanırsa diğer herkes 1 puan alır. Yakalanan sahtekâr kelimeyi bilirse o da 1 puan alır. Süre dolarsa ipucu boş geçilir.</div></div>`;
+      h+=host?`<div class="card"><div class="mu">Kategoriler</div>${CATS.map(c=>`<button class="chip ${ui.cats.includes(c)?"on":"off"}" data-on="toggleCat" data-a="${c}">${c}</button>`).join("")}<div style="margin:6px 0"><button class="chip off" data-on="allCats" data-a="1">Hepsini seç</button><button class="chip off" data-on="allCats" data-a="">Hiçbirini seçme</button></div>${ui.cats.length?"":'<div class="mu" style="color:var(--ac)">En az bir kategori seç.</div>'}<div class="mu" style="margin-top:8px">İpucu süresi</div><select data-m="ct">${opts(CT,ui.ct)}</select><div class="mu">Oylama süresi</div><select data-m="vt">${opts(VT,ui.vt)}</select><button data-on="start" ${players.length<3||!ui.cats.length?"disabled":""}>Oyunu başlat</button>${players.length<3?'<div class="mu">En az 3 kişi gerekli.</div>':""}${hasSc?'<button class="s" data-on="resetScores">Puanları sıfırla</button>':""}</div>`:`<div class="card"><div class="mu">Bu odadaki kategoriler</div><div>${esc((room.cats||CATS).join(", "))}</div></div><p class="mu" style="text-align:center">Kurucunun başlatması bekleniyor…</p>`;
     }else{
-      h+=`<div class="card"><div class="mu" style="margin-bottom:8px">Kategori: <b>${esc(room.cat)}</b></div><div class="secret" id="sec">Görmek için basılı tut</div></div>`;
+      h+=`<div class="card"><div class="mu" style="margin-bottom:8px">Kategori: <b>${esc(room.cat)}</b></div>${room.note?`<div class="mu" style="margin-bottom:8px;color:var(--ac)">${esc(room.note)}</div>`:""}<div class="secret" id="sec">Görmek için basılı tut</div></div>`;
       const cl=clues.filter(c=>c.g===g).sort((a,b)=>a.turn-b.turn);
       if(room.phase==="clue"){
         const cur=room.order[room.turn%room.order.length],mine=cur===me.id;
@@ -216,7 +243,7 @@ function render(){
           h+=`<div class="card"><h2>Sahtekâr yakalandı! 🕵️</h2>`+(imps?`<p class="me">Yakalandın, ama kelimeyi doğru bilirsen 1 puan kazanırsın. Kelime ne?</p><input id="gi" data-m="guess" placeholder="Tahminin" maxlength="30" value="${esc(ui.guess||"")}"><button data-on="sendGuess">Tahmin et</button>`:`<p class="mu">${esc(acc)} sahtekâr çıktı. Şimdi kelimeyi tahmin etmeye çalışıyor…</p>`)+`</div>`;
         }else{
           const r=room.result||{},caught=!!r.accused&&r.accused===room.imp,crewWon=caught&&!r.guessOk;
-          h+=`<div class="card"><div class="big">${r.accused?esc(nameOf(r.accused))+" suçlandı":(Object.keys(r.tally||{}).length?"Oylar eşit!":"Süre doldu, kimse oy vermedi")}</div><p class="big" style="color:${crewWon?"var(--ok)":"var(--ac)"}">${crewWon?"Sahtekâr yakalandı 🎉":caught?"Yakalandı ama kelimeyi bildi 😮":"Sahtekâr kaçtı 😈"}</p>
+          h+=`<div class="card"><div class="big">${r.accused?esc(nameOf(r.accused))+" suçlandı":(Object.keys(r.tally||{}).length?"Oylar eşit!":"Süre doldu, kimse oy vermedi")}</div><p class="big" style="color:${caught?"var(--ok)":"var(--ac)"}">${crewWon?"Sahtekâr yakalandı 🎉":caught?"Yakalandı ama kelimeyi bildi 😮 Sahtekâr da 1 puan aldı":"Sahtekâr kaçtı 😈"}</p>
           <div class="pl"><span>Sahtekâr</span><b>${esc(nameOf(room.imp))}</b></div><div class="pl"><span>Kelime</span><b>${esc(room.word||"?")}</b></div>${caught?`<div class="pl"><span>Sahtekârın tahmini</span><b>${esc(r.guess||"-")}</b></div>`:""}
           ${Object.keys(r.tally||{}).map(k=>`<div class="pl"><span class="mu">${esc(nameOf(k))}</span><span class="mu">${r.tally[k]} oy</span></div>`).join("")}</div>`+lbCard()+(host?`<button data-on="again">Yeni tur</button>`:`<p class="mu" style="text-align:center">Kurucu yeni turu başlatacak.</p>`);
         }
