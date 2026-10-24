@@ -68,13 +68,13 @@ const CT=[[15,"15 sn"],[20,"20 sn"],[30,"30 sn"],[0,"Sayaç kapalı"]],VT=[[30,"
 const opts=(l,c)=>l.map(([v,t])=>`<option value="${v}" ${String(v)===String(c)?"selected":""}>${t}</option>`).join("");
 const $=s=>document.querySelector(s);
 const PRESETS=(window.AVATARS&&window.AVATARS.length)?window.AVATARS:['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cfd8dc"/><circle cx="50" cy="38" r="18" fill="#90a4ae"/><ellipse cx="50" cy="86" rx="30" ry="26" fill="#90a4ae"/></svg>'];
-const avSrc=a=>a&&String(a).startsWith("data:")?a:"data:image/svg+xml;utf8,"+encodeURIComponent(PRESETS[parseInt(String(a||"p:0").slice(2))]||PRESETS[0]);
+const avSrc=a=>{a=String(a||"");if(a.length<20000&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(a))return a;const m=/^p:(\d{1,2})$/.exec(a);return "data:image/svg+xml;utf8,"+encodeURIComponent(PRESETS[m?+m[1]:0]||PRESETS[0])};
 const avHtml=(a,s)=>`<img class="av" src="${avSrc(a)}" width="${s||32}" height="${s||32}" alt="">`;
 let db=null,user=null,prof=null,loaded=false,scr="home",authMode="login",msg="",friends=[],reqs=[],invites=[],userSubs=[],pendingRoom=new URLSearchParams(location.search).get("oda")||"",
 me={id:"",name:"",av:""},code="",room=null,myCard=null,players=[],clues=[],votes=[],unsubs=[],err="",
 ui={name:"",join:"",clue:"",guess:"",cats:CATS.slice(),ct:20,vt:60,email:"",pass:"",pname:"",pav:"p:0",fcode:""},finG="",finGu=0,HS=null,cd={key:"",end:0,done:false};
 try{ui.name=localStorage.getItem("sk_name")||""}catch(e){}
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const rnd=a=>a[Math.floor(Math.random()*a.length)];
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const nameOf=id=>(players.find(p=>p.id===id)||{}).name||"?";
@@ -135,7 +135,8 @@ function sub(){
 }
 async function enter(c,create){
   if(!prof)return;
-  const nm=prof.guest?ui.name.trim():prof.name;
+  if(!/^\d{4}$/.test(String(c))){err="Oda kodu 4 haneli bir sayı olmalı.";return render()}
+  const nm=(prof.guest?ui.name.trim():prof.name).slice(0,14);
   if(!nm){err="Önce adını yaz.";return render()}
   if(prof.guest){try{localStorage.setItem("sk_name",ui.name)}catch(e){}}
   me.name=nm;me.av=prof.av;code=c;err="";msg="";
@@ -178,7 +179,7 @@ async function logout(){if(code)leave();try{await firebase.auth().signOut()}catc
 const CODE_CH="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const genCode=()=>Array.from({length:6},()=>CODE_CH[Math.floor(Math.random()*CODE_CH.length)]).join("");
 async function saveProfile(){
-  const name=(ui.pname||"").trim();
+  const name=(ui.pname||"").trim().slice(0,14);
   if(!name){msg="Bir isim yaz.";return render()}
   try{
     let c=prof&&prof.code;
@@ -258,7 +259,7 @@ async function copyLink(){try{await navigator.clipboard.writeText(roomLink());ms
 function banner(){
   const now=Date.now(),inv=invites.filter(i=>now-i.t<600000).sort((a,b)=>b.t-a.t)[0];
   if(!inv)return"";
-  return `<div class="card" style="border-color:var(--ac)"><div style="display:flex;align-items:center;gap:10px">${avHtml(inv.av,36)}<div><b>${esc(inv.name)}</b> seni oyuna çağırıyor</div></div><div style="display:flex;gap:8px"><button data-on="joinInvite" data-a="${inv.id}">Katıl</button><button class="s" data-on="dismissInvite" data-a="${inv.id}">Kapat</button></div></div>`;
+  return `<div class="card" style="border-color:var(--ac)"><div style="display:flex;align-items:center;gap:10px">${avHtml(inv.av,36)}<div><b>${esc(inv.name)}</b> seni oyuna çağırıyor</div></div><div style="display:flex;gap:8px"><button data-on="joinInvite" data-a="${esc(inv.id)}">Katıl</button><button class="s" data-on="dismissInvite" data-a="${esc(inv.id)}">Kapat</button></div></div>`;
 }
 async function create(){let c;for(let i=0;i<5;i++){c=String(Math.floor(1000+Math.random()*9000));try{const x=await db.doc("rooms/"+c).get();if(!x.exists)break}catch(e){break}}enter(c,true)}
 function joinRoom(){enter(ui.join.trim(),false)}
@@ -355,7 +356,7 @@ async function finish(result,guessOk,guess){
   await R().update({phase:"result",result:{tally:result.tally,accused:result.accused||null,gain,guess:guess||"",guessOk:!!guessOk},word:hs.w,imp:hs.imp,scores:sc});
 }
 async function resetScores(){await R().update({scores:{}})}
-function lbCard(){const g=(room.result||{}).gain||{};const l=players.slice().sort((a,b)=>pts(b.id)-pts(a.id));return `<div class="card"><h2>🏆 Puan durumu</h2>${l.map((p,i)=>`<div class="pl"><span class="${p.id===me.id?"me":""}" style="display:flex;align-items:center;gap:8px">${i+1}. ${avHtml(p.av,24)} ${esc(p.name)}</span><span><b>${pts(p.id)}</b>${g[p.id]?` <span style="color:var(--ok)">+${g[p.id]}</span>`:""}</span></div>`).join("")}</div>`}
+function lbCard(){const g=(room.result||{}).gain||{};const l=players.slice().sort((a,b)=>pts(b.id)-pts(a.id));return `<div class="card"><h2>🏆 Puan durumu</h2>${l.map((p,i)=>`<div class="pl"><span class="${p.id===me.id?"me":""}" style="display:flex;align-items:center;gap:8px">${i+1}. ${avHtml(p.av,24)} ${esc(p.name)}</span><span><b>${esc(pts(p.id))}</b>${g[p.id]?` <span style="color:var(--ok)">+${esc(g[p.id])}</span>`:""}</span></div>`).join("")}</div>`}
 async function again(){await R().update({phase:"lobby"})}
 function reveal(show){
   const el=$("#sec");if(!el)return;
@@ -399,8 +400,8 @@ function render(){
     h=`<div class="top"><button class="chip off" data-on="goHome">← Geri</button></div><h1>Arkadaşlar</h1>
     <div class="card"><div class="mu">Senin kodun</div><div class="code" style="font-size:32px">${esc(prof.code)}</div></div>
     <div class="card"><h2>Arkadaş ekle</h2><input data-m="fcode" placeholder="Arkadaş kodu" maxlength="6" value="${esc(ui.fcode)}" style="text-transform:uppercase"><button data-on="addFriend">İstek gönder</button></div>
-    ${reqs.length?`<div class="card"><h2>Gelen istekler</h2>${reqs.map(r=>`<div class="pl"><span style="${row}">${avHtml(r.av,28)} ${esc(r.name)}</span><span style="display:flex;gap:6px"><button class="chip on" data-on="acceptReq" data-a="${r.id}">Kabul</button><button class="chip off" data-on="declineReq" data-a="${r.id}">Reddet</button></span></div>`).join("")}</div>`:""}
-    <div class="card"><h2>Arkadaşlarım (${friends.length})</h2>${friends.length?friends.map(f=>`<div class="pl"><span style="${row}">${avHtml(f.av,28)} ${esc(f.name||"?")}</span><button class="chip off" data-on="removeFriend" data-a="${f.id}">Çıkar</button></div>`).join(""):'<div class="mu">Henüz arkadaşın yok. Kodunu paylaş ya da arkadaşının kodunu yaz.</div>'}</div>${M}${E}`;
+    ${reqs.length?`<div class="card"><h2>Gelen istekler</h2>${reqs.map(r=>`<div class="pl"><span style="${row}">${avHtml(r.av,28)} ${esc(r.name)}</span><span style="display:flex;gap:6px"><button class="chip on" data-on="acceptReq" data-a="${esc(r.id)}">Kabul</button><button class="chip off" data-on="declineReq" data-a="${esc(r.id)}">Reddet</button></span></div>`).join("")}</div>`:""}
+    <div class="card"><h2>Arkadaşlarım (${friends.length})</h2>${friends.length?friends.map(f=>`<div class="pl"><span style="${row}">${avHtml(f.av,28)} ${esc(f.name||"?")}</span><button class="chip off" data-on="removeFriend" data-a="${esc(f.id)}">Çıkar</button></div>`).join(""):'<div class="mu">Henüz arkadaşın yok. Kodunu paylaş ya da arkadaşının kodunu yaz.</div>'}</div>${M}${E}`;
   }else if(!code||!room){
     h=`<div class="top"><div class="who" ${prof&&!prof.guest?'data-on="goProfile" style="cursor:pointer"':""}>${avHtml(prof&&prof.av,36)} ${esc(prof&&!prof.guest?prof.name:(ui.name||"Misafir"))}</div>${prof&&prof.guest?'<button class="chip off" data-on="logout">Giriş yap</button>':`<button class="chip off" data-on="goFriends">Arkadaşlar${reqs.length?" ("+reqs.length+")":""}</button>`}</div>
     <h1>🕵️ Sahtekâr Kim?</h1><p class="mu">Kelimeyi bilen mi, bilmeyen mi? Arkadaşlarınla herkes kendi telefonundan.</p>
@@ -413,10 +414,10 @@ function render(){
     const host=room.host===me.id,g=room.g,hasSc=room.scores&&Object.keys(room.scores).length;
     h=`<div class="mu">Oda kodu</div><div class="code">${esc(code)}</div>`;
     if(room.phase==="lobby"){
-      h+=`<div class="card"><h2>Oyuncular (${players.length})</h2>${players.slice().sort((a,b)=>pts(b.id)-pts(a.id)).map(p=>`<div class="pl"><span class="${p.id===me.id?"me":""}">${avHtml(p.av,28)} ${esc(p.name)}${p.id===room.host?' <span class="mu">(kurucu)</span>':""}</span>${hasSc?`<b>${pts(p.id)} puan</b>`:""}</div>`).join("")}<div class="mu" style="margin-top:8px">Sahtekâr yakalanmazsa 2 puan alır. Yakalanırsa diğer herkes 1 puan alır. Yakalanan sahtekâr kelimeyi bilirse o da 1 puan alır. Süre dolarsa ipucu boş geçilir.</div></div>`;
+      h+=`<div class="card"><h2>Oyuncular (${players.length})</h2>${players.slice().sort((a,b)=>pts(b.id)-pts(a.id)).map(p=>`<div class="pl"><span class="${p.id===me.id?"me":""}">${avHtml(p.av,28)} ${esc(p.name)}${p.id===room.host?' <span class="mu">(kurucu)</span>':""}</span>${hasSc?`<b>${esc(pts(p.id))} puan</b>`:""}</div>`).join("")}<div class="mu" style="margin-top:8px">Sahtekâr yakalanmazsa 2 puan alır. Yakalanırsa diğer herkes 1 puan alır. Yakalanan sahtekâr kelimeyi bilirse o da 1 puan alır. Süre dolarsa ipucu boş geçilir.</div></div>`;
       const inv=(prof&&!prof.guest?friends.filter(f=>!players.some(p=>p.id===f.id)):[]);
       h+=host?`<div class="card"><div class="mu">Kategoriler</div>${CATS.map(c=>`<button class="chip ${ui.cats.includes(c)?"on":"off"}" data-on="toggleCat" data-a="${c}">${c}</button>`).join("")}<div style="margin:6px 0"><button class="chip off" data-on="allCats" data-a="1">Hepsini seç</button><button class="chip off" data-on="allCats" data-a="">Hiçbirini seçme</button></div>${ui.cats.length?"":'<div class="mu" style="color:var(--ac)">En az bir kategori seç.</div>'}<div class="mu" style="margin-top:8px">İpucu süresi</div><select data-m="ct">${opts(CT,ui.ct)}</select><div class="mu">Oylama süresi</div><select data-m="vt">${opts(VT,ui.vt)}</select><button data-on="start" ${players.length<3||!ui.cats.length?"disabled":""}>Oyunu başlat</button>${players.length<3?'<div class="mu">En az 3 kişi gerekli.</div>':""}${hasSc?'<button class="s" data-on="resetScores">Puanları sıfırla</button>':""}</div>`:`<div class="card"><div class="mu">Bu odadaki kategoriler</div><div>${esc((room.cats||CATS).join(", "))}</div></div><p class="mu" style="text-align:center">Kurucunun başlatması bekleniyor…</p>`;
-      h+=`<div class="card"><h2>Arkadaş çağır</h2><button data-on="shareWa">WhatsApp ile davet et</button><button class="s" data-on="copyLink">Linki kopyala</button>${inv.map(f=>`<div class="pl"><span style="${row}">${avHtml(f.av,28)} ${esc(f.name||"?")}</span><button class="chip on" data-on="inviteFriend" data-a="${f.id}">Davet et</button></div>`).join("")}${M}</div>`;
+      h+=`<div class="card"><h2>Arkadaş çağır</h2><button data-on="shareWa">WhatsApp ile davet et</button><button class="s" data-on="copyLink">Linki kopyala</button>${inv.map(f=>`<div class="pl"><span style="${row}">${avHtml(f.av,28)} ${esc(f.name||"?")}</span><button class="chip on" data-on="inviteFriend" data-a="${esc(f.id)}">Davet et</button></div>`).join("")}${M}</div>`;
       h+=`<button class="s" data-on="leave">Odadan ayrıl</button>`;
     }else{
       h+=`<div class="card"><div class="mu" style="margin-bottom:8px">Kategori: <b>${esc(room.cat)}</b></div>${room.note?`<div class="mu" style="margin-bottom:8px;color:var(--ac)">${esc(room.note)}</div>`:""}<div class="secret" id="sec">Görmek için basılı tut</div></div>`;
@@ -431,7 +432,7 @@ function render(){
         h+=`<div class="card"><h2>İpuçları</h2>${clueRows}</div>`;
         if(room.phase==="vote"){
           const vr=room.vr||0,my=votes.find(v=>v.g===g&&(v.vr||0)===vr&&v.uid===me.id);
-          h+=`<div class="card"><h2>Sahtekâr kim?<span id="cd" style="float:right;font-size:18px"></span></h2>`+players.filter(p=>p.id!==me.id).map(p=>`<button class="vote ${my&&my.target===p.id?"on":""}" data-on="castVote" data-a="${p.id}"><span style="display:inline-flex;align-items:center;gap:8px">${avHtml(p.av,28)} ${esc(p.name)}</span></button>`).join("")+`<div class="mu">${votes.filter(v=>v.g===g&&(v.vr||0)===vr).length}/${players.length} oy verdi</div></div>`;
+          h+=`<div class="card"><h2>Sahtekâr kim?<span id="cd" style="float:right;font-size:18px"></span></h2>`+players.filter(p=>p.id!==me.id).map(p=>`<button class="vote ${my&&my.target===p.id?"on":""}" data-on="castVote" data-a="${esc(p.id)}"><span style="display:inline-flex;align-items:center;gap:8px">${avHtml(p.av,28)} ${esc(p.name)}</span></button>`).join("")+`<div class="mu">${votes.filter(v=>v.g===g&&(v.vr||0)===vr).length}/${players.length} oy verdi</div></div>`;
         }else if(room.phase==="guess"){
           const imps=myCard&&myCard.g===g&&myCard.t==="imp",acc=(room.result||{}).accused;
           h+=`<div class="card"><h2>Sahtekâr yakalandı! 🕵️</h2>`+(imps?`<p class="me">Yakalandın, ama kelimeyi doğru bilirsen 1 puan kazanırsın. Kelime ne?</p><input id="gi" data-m="guess" placeholder="Tahminin" maxlength="30" value="${esc(ui.guess||"")}"><button data-on="sendGuess">Tahmin et</button>`:`<p class="mu">${pn(acc,20)} sahtekâr çıktı. Şimdi kelimeyi tahmin etmeye çalışıyor…</p>`)+`</div>`;
@@ -439,7 +440,7 @@ function render(){
           const r=room.result||{},caught=!!r.accused&&r.accused===room.imp,crewWon=caught&&!r.guessOk;
           h+=`<div class="card"><div class="big">${r.accused?esc(nameOf(r.accused))+" suçlandı":(Object.keys(r.tally||{}).length?"Oylar eşit!":"Süre doldu, kimse oy vermedi")}</div><p class="big" style="color:${caught?"var(--ok)":"var(--ac)"}">${crewWon?"Sahtekâr yakalandı 🎉":caught?"Yakalandı ama kelimeyi bildi 😮 Sahtekâr da 1 puan aldı":"Sahtekâr kaçtı 😈"}</p>
           <div class="pl"><span>Sahtekâr</span><b>${pn(room.imp)}</b></div><div class="pl"><span>Kelime</span><b>${esc(room.word||"?")}</b></div>${caught?`<div class="pl"><span>Sahtekârın tahmini</span><b>${esc(r.guess||"-")}</b></div>`:""}
-          ${Object.keys(r.tally||{}).map(k=>`<div class="pl"><span class="mu">${pn(k,20)}</span><span class="mu">${r.tally[k]} oy</span></div>`).join("")}</div>`+lbCard()+(host?`<button data-on="again">Yeni tur</button>`:`<p class="mu" style="text-align:center">Kurucu yeni turu başlatacak.</p>`);
+          ${Object.keys(r.tally||{}).map(k=>`<div class="pl"><span class="mu">${pn(k,20)}</span><span class="mu">${esc(r.tally[k])} oy</span></div>`).join("")}</div>`+lbCard()+(host?`<button data-on="again">Yeni tur</button>`:`<p class="mu" style="text-align:center">Kurucu yeni turu başlatacak.</p>`);
         }
       }
     }
