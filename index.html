@@ -102,6 +102,8 @@ async function onAuth(u){
     }else if(u){prof={name:"",av:"p:"+(u.uid.charCodeAt(0)%PRESETS.length),guest:true};scr="home"}
   }catch(e){err="Profil yüklenemedi: "+(e.message||e.code)}
   loaded=true;render();afterReady();
+  logDau();
+  if(adminMode&&prof&&!prof.guest){scr="stats";loadStats()}
 }
 function afterReady(){
   if(!prof||!pendingRoom||code)return;
@@ -141,7 +143,7 @@ async function enter(c,create){
   if(prof.guest){try{localStorage.setItem("sk_name",ui.name)}catch(e){}}
   me.name=nm;me.av=prof.av;code=c;err="";msg="";
   try{
-    if(create){await R().set({phase:"lobby",host:me.id,g:0,cats:CATS.slice()})}
+    if(create){await R().set({phase:"lobby",host:me.id,g:0,cats:CATS.slice()});logEv("room")}
     else{const s=await R().get();if(!s.exists){err="Böyle bir oda yok.";code="";return render()}}
     await R().collection("players").doc(me.id).set({name:me.name,av:me.av,t:Date.now()});
     sub();
@@ -182,6 +184,7 @@ async function saveProfile(){
   const name=(ui.pname||"").trim().slice(0,14);
   if(!name){msg="Bir isim yaz.";return render()}
   try{
+    const isNew=!(prof&&prof.code);
     let c=prof&&prof.code;
     for(let i=0;i<8&&!c;i++){
       const t=genCode(),ref=db.doc("codes/"+t);
@@ -191,6 +194,7 @@ async function saveProfile(){
     if(!c)throw new Error("Arkadaş kodu üretilemedi");
     const data={name,av:ui.pav,code:c,t:(prof&&prof.t)||Date.now()};
     await db.doc("users/"+me.id).set(data);
+    if(isNew)logEv("signup");
     prof=data;scr="home";msg="";
     if(!userSubs.length)startUserSubs();
     render();afterReady();return;
@@ -296,6 +300,7 @@ async function start(){
     b.set(R().collection("secret").doc("word"),{g,w:word,alt:entry,imp});
     await b.commit();
     await R().update({phase:"clue",g,cat,order,turn:0,lim:order.length*2,vr:0,ct:Number(ui.ct),vt:Number(ui.vt),result:null,guess:null,word:null,imp:null,cats:ui.cats.slice(),note:pk.note||""});
+    logEv("game",{n:players.length,cat});
   }catch(e){err="Başlatılamadı: "+(e.message||e.code);render()}
 }
 async function advanceClue(turn,text){
@@ -354,6 +359,7 @@ async function finish(result,guessOk,guess){
     if(p.id===hs.imp)g=!caught?2:(guessOk?1:0);else g=caught?1:0;
     gain[p.id]=g;sc[p.id]=(sc[p.id]||0)+g});
   await R().update({phase:"result",result:{tally:result.tally,accused:result.accused||null,gain,guess:guess||"",guessOk:!!guessOk},word:hs.w,imp:hs.imp,scores:sc});
+  logEv("finish",{n:players.length,cat:String(room.cat||"").slice(0,30)});
 }
 async function resetScores(){await R().update({scores:{}})}
 function lbCard(){const g=(room.result||{}).gain||{};const l=players.slice().sort((a,b)=>pts(b.id)-pts(a.id));return `<div class="card"><h2>🏆 Puan durumu</h2>${l.map((p,i)=>`<div class="pl"><span class="${p.id===me.id?"me":""}" style="display:flex;align-items:center;gap:8px">${i+1}. ${avHtml(p.av,24)} ${esc(p.name)}</span><span><b>${esc(pts(p.id))}</b>${g[p.id]?` <span style="color:var(--ok)">+${esc(g[p.id])}</span>`:""}</span></div>`).join("")}</div>`}
@@ -372,6 +378,54 @@ function bind(){
   const ci=$("#ci");if(ci)ci.onkeydown=e=>{if(e.key==="Enter")sendClue()};
   const gi=$("#gi");if(gi)gi.onkeydown=e=>{if(e.key==="Enter")sendGuess()};
 }
+const adminMode=new URLSearchParams(location.search).get("yonetim")==="1";
+let stats=null,statsErr="";
+const dayKey=t=>new Date((t||Date.now())+10800000).toISOString().slice(0,10).replace(/-/g,"");
+function logEv(type,extra){
+  try{if(!db||!user)return;db.collection("events").add(Object.assign({type,day:dayKey(),t:Date.now()},extra||{})).catch(()=>{})}catch(e){}
+}
+function logDau(){
+  try{
+    if(!db||!user)return;const d=dayKey(),k="sk_dau_"+user.uid;
+    try{if(localStorage.getItem(k)===d)return;localStorage.setItem(k,d)}catch(e){}
+    db.collection("dau").doc(d+"_"+user.uid).set({uid:user.uid,day:d,guest:!!user.isAnonymous,t:Date.now()}).catch(()=>{});
+  }catch(e){}
+}
+async function loadStats(){
+  stats=null;statsErr="";render();
+  try{
+    const since=dayKey(Date.now()-29*86400000);
+    const [dq,eq]=await Promise.all([db.collection("dau").where("day",">=",since).get(),db.collection("events").where("day",">=",since).get()]);
+    const dau=dq.docs.map(d=>d.data()),ev=eq.docs.map(d=>d.data());
+    const cnt=(t,s)=>ev.filter(e=>e.type===t&&e.day>=s).length;
+    const win=n=>{const s=dayKey(Date.now()-(n-1)*86400000);return{act:new Set(dau.filter(x=>x.day>=s).map(x=>x.uid)).size,room:cnt("room",s),game:cnt("game",s),fin:cnt("finish",s),su:cnt("signup",s)}};
+    const days=[];for(let i=13;i>=0;i--){const d=dayKey(Date.now()-i*86400000);days.push({d,act:new Set(dau.filter(x=>x.day===d).map(x=>x.uid)).size,game:ev.filter(e=>e.type==="game"&&e.day===d).length})}
+    const s14=dayKey(Date.now()-13*86400000),s7=dayKey(Date.now()-6*86400000),by={};
+    dau.forEach(x=>{const u=by[x.uid]=by[x.uid]||{id:x.uid,days:new Set(),guest:x.guest,last:""};u.days.add(x.day);if(x.day>u.last)u.last=x.day});
+    const act14=Object.values(by).filter(u=>[...u.days].some(d=>d>=s14)),ret=act14.filter(u=>[...u.days].filter(d=>d>=s14).length>=2).length;
+    const games=ev.filter(e=>e.type==="game"),avgN=games.length?(games.reduce((a,e)=>a+(e.n||0),0)/games.length):0;
+    const cats={};games.forEach(e=>{if(e.cat)cats[e.cat]=(cats[e.cat]||0)+1});
+    const topCats=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const recent=Object.values(by).filter(u=>u.last>=s7);
+    const reg=recent.filter(u=>!u.guest).sort((a,b)=>b.last.localeCompare(a.last)).slice(0,30);
+    const names=await Promise.all(reg.map(async u=>{try{const d=await db.doc("users/"+u.id).get();return d.exists?{name:d.data().name,av:d.data().av,days:[...u.days].filter(x=>x>=s7).length,last:u.last}:null}catch(e){return null}}));
+    stats={t:win(1),w:win(7),m:win(30),days,ret,act14:act14.length,avgN,topCats,who:names.filter(Boolean),guests:recent.filter(u=>u.guest).length};
+  }catch(e){statsErr=e.code==="permission-denied"?"Bu sayfayı sadece yönetici görebilir.":("Hata: "+(e.message||e.code))}
+  render();
+}
+const fmtDay=d=>d.slice(6)+"."+d.slice(4,6);
+function statsHtml(){
+  if(statsErr)return `<div class="card"><p style="color:var(--ac)">${esc(statsErr)}</p></div>`;
+  if(!stats)return '<p class="mu">Yükleniyor…</p>';
+  const S=stats,row=(a,b)=>`<div class="pl"><span>${a}</span><b>${esc(b)}</b></div>`;
+  const tb=(n,o)=>`<div class="card"><h2>${n}</h2>${row("Aktif oyuncu",o.act)}${row("Kurulan oda",o.room)}${row("Başlayan oyun",o.game)}${row("Biten oyun",o.fin)}${row("Yeni kayıt",o.su)}</div>`;
+  const max=Math.max(1,...S.days.map(x=>x.act));
+  return tb("Bugün",S.t)+tb("Son 7 gün",S.w)+tb("Son 30 gün",S.m)+
+  `<div class="card"><h2>Geri dönenler</h2>${row("Son 14 günde aktif",S.act14)}${row("Bunlardan 2+ gün gelen",S.ret)}${row("Oran",S.act14?Math.round(S.ret*100/S.act14)+"%":"-")}${row("Oyun başına ortalama kişi",S.avgN.toFixed(1))}</div>`+
+  `<div class="card"><h2>Günlük aktif oyuncu</h2>${S.days.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin:4px 0"><span class="mu" style="width:44px">${fmtDay(x.d)}</span><div style="flex:1;background:var(--bg);border-radius:6px"><div style="height:14px;border-radius:6px;background:var(--ac);width:${Math.round(x.act*100/max)}%"></div></div><b style="width:40px;text-align:right">${x.act}/${x.game}</b></div>`).join("")}<div class="mu">Sağda: aktif oyuncu / başlayan oyun</div></div>`+
+  `<div class="card"><h2>En çok oynanan kategoriler</h2>${S.topCats.length?S.topCats.map(c=>row(esc(c[0]),c[1])).join(""):'<div class="mu">Henüz veri yok.</div>'}</div>`+
+  `<div class="card"><h2>Son 7 günde gelenler</h2>${S.who.map(u=>`<div class="pl"><span style="display:flex;align-items:center;gap:8px">${avHtml(u.av,28)} ${esc(u.name)}</span><span class="mu">${u.days} gün · son ${fmtDay(u.last)}</span></div>`).join("")}${S.guests?row("Misafir olarak gelen",S.guests):""}${S.who.length||S.guests?"":'<div class="mu">Henüz veri yok.</div>'}</div>`;
+}
 function render(){
   const a=$("#app");let h="";
   const keep=document.activeElement&&document.activeElement.dataset?document.activeElement.dataset.m:null;
@@ -388,7 +442,7 @@ function render(){
     <button data-on="emailAuth">${authMode==="signup"?"Kayıt ol":"Giriş yap"}</button>
     <button class="s" data-on="setMode" data-a="${authMode==="signup"?"login":"signup"}">${authMode==="signup"?"Hesabım var, giriş yap":"Hesabım yok, kayıt ol"}</button>
     <button class="s" data-on="resetPass">Şifremi unuttum</button></div>
-    <div class="card"><button class="s" data-on="guest">Misafir olarak devam et</button><div class="mu">Misafir olarak oynarsan profil ve arkadaş özellikleri olmaz.</div></div>${M}${E}`;
+    <div class="card"><button class="s" data-on="guest">Misafir olarak devam et</button><div class="mu">Misafir olarak oynarsan profil ve arkadaş özellikleri olmaz.</div></div><p class="mu">Oyunu geliştirmek için oyun etkinliklerini (oda kurma, oyun sayısı) ve hangi günlerde oynadığını kaydederiz. E-posta adresin bu kayıtlarda tutulmaz.</p>${M}${E}`;
   }else if(scr==="setup"||scr==="profile"){
     h=`<h1>${scr==="setup"?"Profilini oluştur":"Profilim"}</h1>
     ${scr==="profile"&&prof?`<div class="card"><div class="mu">Arkadaş kodun</div><div class="code" style="font-size:32px">${esc(prof.code)}</div></div>`:""}
@@ -396,6 +450,8 @@ function render(){
     <input data-m="pname" placeholder="Oyunda görünecek adın" maxlength="14" value="${esc(ui.pname)}">
     ${picker()}<button data-on="saveProfile">Kaydet</button>
     ${scr==="profile"?'<button class="s" data-on="goHome">Geri</button><button class="s" data-on="logout">Çıkış yap</button>':""}</div>${M}`;
+  }else if(scr==="stats"){
+    h=`<div class="top"><button class="chip off" data-on="goHome">← Geri</button><button class="chip off" data-on="loadStats">Yenile</button></div><h1>📊 Kullanım</h1>${statsHtml()}`;
   }else if(scr==="friends"&&!code){
     h=`<div class="top"><button class="chip off" data-on="goHome">← Geri</button></div><h1>Arkadaşlar</h1>
     <div class="card"><div class="mu">Senin kodun</div><div class="code" style="font-size:32px">${esc(prof.code)}</div></div>
